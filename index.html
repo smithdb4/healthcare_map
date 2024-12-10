@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Healthcare Spending in the US</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+h1 {
+    margin: 20px 0;
+    padding: 8px 2%;
+    background: rgba(254, 135, 0, 0.863);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    color: whitesmoke;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+h2 {
+    font-family: "Lora", sans-serif;
+    letter-spacing: .04em;
+}
+
+#map {
+    width: 960px;
+    height: 540px;
+    margin: 20px 0;
+}
+
+section {
+    background: rgba(256, 256, 256);
+    border: 1px solid grey;
+    border-radius: 3px;
+    padding: 15px;
+    margin: 10px;
+    width: 80%;
+}
+
+p {
+    font-size: .9em;
+    line-height: 1.5em;
+}
+
+a {
+    color: #005daa;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.top-section {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    margin-top: 20px;
+}
+
+.bottom-section {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    margin-bottom: 20px;
+}
+</style>
+
+</head>
+<body>
+<div class="top-section">
+    <section>
+        <h2>Which States Spend the Most on Healthcare?</h2>
+
+        <p>On average, states spent $10,191 per person on goods and services directly related to patient care in 2020. New York, Alaska, and Massachusetts spent the most.</p>
+        <p>Personal healthcare expenditures includes expenses for hospital care, physicians’ and dentists’ services, prescription drugs, eyeglasses, and nursing home care.</p>
+        <p><a href="https://usafacts.org/articles/which-states-spend-the-most-on-healthcare/">Original article</a></p>
+        
+    </section>
+</div>
+
+<h1>Healthcare Spending in the US, 2020</h1>
+<div id="map"></div>
+
+<div class="bottom-section">
+    <section>
+        <h2>About This Map</h2>
+
+        <p>This map uses graduated circle symbology to represent annual healthcare per capita spending in each US state. This means the larger the circle, the greater the spending.</p>
+        <p>The rank refers to where a state stands in comparison to the rest of the states in the country. With #1 being the highest per capita spending and #50 being the lowest.</p>
+        <p>Original article's data from <a href="https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data">CMS.gov.</a></p>
+        <p>Map authored by Dylan Smith</p>
+    </section>
+</div>
+
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+<script>
+var map = L.map('map', {
+    center: [39.5, -95.3],
+    zoom: 4
+});
+var Stadia_StamenTonerLite = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.{ext}', {
+	minZoom: 0,
+	maxZoom: 20,
+	attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	ext: 'png'
+}).addTo(map);
+
+var minValue = 7522;
+var minRadius = 7;
+function calcRadius(val) {
+    return 1.00 * Math.pow(val / minValue, 1.5) * minRadius;
+}
+
+states = L.geoJson.ajax("assets/data.geojson", {
+    attribution: 'Data: CMS.gov, Map: Dylan Smith',
+    pointToLayer: function (feature, latlng) {
+        return L.circleMarker(latlng, {
+            color: '#ff7900',
+            opacity: 1,
+            weight: 2,
+            fillColor: '#ff7900',
+            fillOpacity: .6,
+            radius: calcRadius(feature.properties.spending)
+        }).on({
+            mouseover: function (e) {
+                this.setStyle({ color: 'blue', fillColor: 'blue' });
+            },
+            mouseout: function (e) {
+                this.setStyle({ color: '#ff7900', fillColor: '#ff7900' });
+            }
+        }).bindPopup(
+            `<b>State:</b> ${feature.properties.State}<br>` +
+            `<b>Spending:</b> $${feature.properties.spending}<br>` +
+            `<b>Rank:</b> ${feature.properties.rank}`
+        );
+    }
+});
+
+states.addTo(map);
+
+L.control.scale({position: 'bottomleft'}).addTo(map);
+</script>
+
+</body>
+</html>
